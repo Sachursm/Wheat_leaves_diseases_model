@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results - Wheat Leaf Disease Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 1.1em;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .image-container {
+            text-align: center;
+        }
+
+        .image-container h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .result-image {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .detections {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .detections h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .detection-item {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .detection-item .disease-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .detection-item .confidence {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .confidence-bar {
+            background: #e0e0e0;
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .no-detections {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .no-detections-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .buttons {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        @media (max-width: 768px) {
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('input_page') }}" class="back-link">← Back to Input</a>
+        <h1>🔬 Detection Results</h1>
+
+        {% if results %}
+            <div class="results-container">
+                <div class="image-container">
+                    <h3>Original Image</h3>
+                    <img src="{{ url_for('static', filename='uploads/' + results.original_image) }}" 
+                         alt="Original Image" class="result-image">
+                </div>
+                <div class="image-container">
+                    <h3>Detected Diseases</h3>
+                    <img src="{{ url_for('static', filename='outputs/' + results.output_image) }}" 
+                         alt="Detection Result" class="result-image">
+                </div>
+            </div>
+
+            <div class="detections">
+                <h2>📊 Detection Details</h2>
+                
+                {% if results.detections %}
+                    {% for detection in results.detections %}
+                    <div class="detection-item">
+                        <div class="disease-name">🦠 {{ detection.class }}</div>
+                        <div class="confidence">Confidence: {{ detection.confidence }}</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" 
+                                 style="width: {{ detection.confidence.rstrip('%') }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-detections">
+                        <div class="no-detections-icon">✅</div>
+                        <h3>No diseases detected!</h3>
+                        <p>The wheat leaf appears to be healthy.</p>
+                    </div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="no-detections">
+                <div class="no-detections-icon">❌</div>
+                <h3>No results available</h3>
+                <p>Please upload an image or use the webcam to detect diseases.</p>
+            </div>
+        {% endif %}
+
+        <div class="buttons">
+            <a href="{{ url_for('input_page') }}" class="btn">Analyze Another Image</a>
+            <a href="{{ url_for('welcome') }}" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>
